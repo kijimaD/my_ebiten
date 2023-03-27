@@ -15,6 +15,8 @@ import (
 
 const ImgDirPrefix = "../../test/actual/"
 
+// 画像をうまく出力するためには、ウィンドウを出した状態でテストを実行する必要がある
+// beforeフックでゲームを実行しつつ、画像をファイルに書き出すテストを実行する
 func TestExample_PrintMessage(t *testing.T) {
 	const (
 		Width  = 128
@@ -52,7 +54,6 @@ func TestExample_PrintMessage(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	// hook
 	RunTestGame(m)
 }
 
@@ -60,26 +61,24 @@ func TestMain(m *testing.M) {
 
 var regularTermination = errors.New("regular termination")
 
-type Game struct {
+type TestGame struct {
+	msg.Game
 	m *testing.M
 }
 
-func (g *Game) Update() error {
+func (g *TestGame) Update() error {
+	// m.Run()はテストの前に実行される
 	g.m.Run()
 	// エラーを返さないと、実行終了しない
 	return regularTermination
 }
-
-func (*Game) Draw(*ebiten.Image) {}
-
-func (*Game) Layout(int, int) (int, int) { return 1, 1 }
 
 func RunTestGame(m *testing.M) {
 	ebiten.SetWindowSize(128, 72)
 	ebiten.SetInitFocused(false)
 	ebiten.SetWindowTitle("Testing...")
 
-	g := &Game{
+	g := &TestGame{
 		m: m,
 	}
 
